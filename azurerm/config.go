@@ -23,6 +23,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/services/datalake/store/2016-11-01/filesystem"
 	storeAccount "github.com/Azure/azure-sdk-for-go/services/datalake/store/mgmt/2016-11-01/account"
 	"github.com/Azure/azure-sdk-for-go/services/devtestlabs/mgmt/2016-05-15/dtl"
+	"github.com/Azure/azure-sdk-for-go/services/domainservices/mgmt/2017-01-01/aad"
 	"github.com/Azure/azure-sdk-for-go/services/eventgrid/mgmt/2018-01-01/eventgrid"
 	"github.com/Azure/azure-sdk-for-go/services/eventhub/mgmt/2017-04-01/eventhub"
 	"github.com/Azure/azure-sdk-for-go/services/graphrbac/1.6/graphrbac"
@@ -196,6 +197,9 @@ type ArmClient struct {
 
 	// Databricks
 	databricksWorkspacesClient databricks.WorkspacesClient
+
+	// Domain Services
+	domainServicesClient aad.DomainServicesClient
 
 	// KeyVault
 	keyVaultClient           keyvault.VaultsClient
@@ -423,6 +427,7 @@ func getArmClient(c *authentication.Config, skipProviderRegistration bool) (*Arm
 	client.registerDevSpaceClients(endpoint, c.SubscriptionID, auth)
 	client.registerDevTestClients(endpoint, c.SubscriptionID, auth)
 	client.registerDNSClients(endpoint, c.SubscriptionID, auth)
+	client.registerDomainServicesClients(endpoint, c.SubscriptionID, auth)
 	client.registerEventGridClients(endpoint, c.SubscriptionID, auth)
 	client.registerEventHubClients(endpoint, c.SubscriptionID, auth)
 	client.registerKeyVaultClients(endpoint, c.SubscriptionID, auth, keyVaultAuth)
@@ -763,6 +768,12 @@ func (c *ArmClient) registerDNSClients(endpoint, subscriptionId string, auth aut
 	zo := dns.NewZonesClientWithBaseURI(endpoint, subscriptionId)
 	c.configureClient(&zo.Client, auth)
 	c.zonesClient = zo
+}
+
+func (c *ArmClient) registerDomainServicesClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
+	dsClient := aad.NewDomainServicesClientWithBaseURI(endpoint, subscriptionId)
+	c.configureClient(&dsClient.Client, auth)
+	c.domainServicesClient = dsClient
 }
 
 func (c *ArmClient) registerEventGridClients(endpoint, subscriptionId string, auth autorest.Authorizer) {
