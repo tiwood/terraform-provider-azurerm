@@ -212,6 +212,34 @@ func TestAccVirtualNetwork_deleteSubnet(t *testing.T) {
 	})
 }
 
+func TestAccVirtualNetwork_syncRemotePeerings(t *testing.T) {
+	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
+	r := VirtualNetworkResource{}
+
+	data.ResourceTest(t, r, []acceptance.TestStep{
+		{
+			Config: r.peeredNetworks(data, "10.0.1.0/24", "10.0.2.0/24"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subnet.#").HasValue("1"),
+				check.That(data.ResourceName).Key("subnet.0.id").Exists(),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
+			),
+		},
+		{
+			Config: r.peeredNetworks(data, "10.0.3.0/24", "10.0.4.0/24"),
+			Check: acceptance.ComposeTestCheckFunc(
+				check.That(data.ResourceName).ExistsInAzure(r),
+				check.That(data.ResourceName).Key("subnet.#").HasValue("1"),
+				check.That(data.ResourceName).Key("subnet.0.id").Exists(),
+				check.That(data.ResourceName).Key("tags.%").HasValue("1"),
+				check.That(data.ResourceName).Key("tags.environment").HasValue("Production"),
+			),
+		},
+	})
+}
+
 func TestAccVirtualNetwork_bgpCommunity(t *testing.T) {
 	data := acceptance.BuildTestData(t, "azurerm_virtual_network", "test")
 	r := VirtualNetworkResource{}
@@ -329,6 +357,74 @@ resource "azurerm_virtual_network" "test" {
   }
 }
 `, data.RandomInteger, data.Locations.Primary, data.RandomInteger)
+}
+
+func (VirtualNetworkResource) peeredNetworks(data acceptance.TestData, firstNetworkAddrSpace string, secondNetworkAddrSpace string) string {
+	return fmt.Sprintf(`
+provider "azurerm" {
+  features {
+		network {
+			sync_remote_virtual_network_peerings = true
+		}
+	}
+}
+
+locals {
+	random_int           = "%d"
+	location             = "%s"
+	first_address_space  = "%s"
+	second_address_space = "%s"
+}
+
+resource "azurerm_resource_group" "test" {
+  name     = "acctestRG-${local.random_int}"
+  location = local.location
+}
+
+resource "azurerm_virtual_network" "test" {
+  name                = "acctestvirtnet${local.random_int}"
+  address_space       = [local.first_address_space]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  subnet {
+    name           = "subnet1"
+    address_prefix = local.first_address_space
+  }
+  tags = {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_virtual_network" "test2" {
+  name                = "acctestvirtnet2${local.random_int}"
+  address_space       = [local.second_address_space]
+  location            = azurerm_resource_group.test.location
+  resource_group_name = azurerm_resource_group.test.name
+
+  subnet {
+    name           = "subnet1"
+    address_prefix = local.second_address_space
+  }
+  tags = {
+    environment = "Production"
+  }
+}
+
+resource "azurerm_virtual_network_peering" "test_to_test2" {
+	name                      = "peer-to-test2"
+	resource_group_name       = azurerm_resource_group.test.name
+	virtual_network_name      = azurerm_virtual_network.test.name
+  remote_virtual_network_id = azurerm_virtual_network.test2.id
+}
+
+resource "azurerm_virtual_network_peering" "test2_to_test" {
+	name                      = "peer-to-test"
+	resource_group_name       = azurerm_resource_group.test.name
+	virtual_network_name      = azurerm_virtual_network.test2.name
+  remote_virtual_network_id = azurerm_virtual_network.test.id
+}
+`, data.RandomInteger, data.Locations.Primary, firstNetworkAddrSpace, secondNetworkAddrSpace)
 }
 
 func (r VirtualNetworkResource) tagCount(data acceptance.TestData) string {

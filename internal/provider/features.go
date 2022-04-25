@@ -150,7 +150,7 @@ func schemaFeatures(supportLegacyTestSuite bool) *pluginsdk.Schema {
 			MaxItems: 1,
 			Elem: &pluginsdk.Resource{
 				Schema: map[string]*pluginsdk.Schema{
-					"relaxed_locking": {
+					"sync_remote_virtual_network_peerings": {
 						Type:     pluginsdk.TypeBool,
 						Required: true,
 					},
@@ -393,6 +393,16 @@ func expandFeatures(input []interface{}) features.UserFeatures {
 			resourceGroupRaw := items[0].(map[string]interface{})
 			if v, ok := resourceGroupRaw["prevent_deletion_if_contains_resources"]; ok {
 				featuresMap.ResourceGroup.PreventDeletionIfContainsResources = v.(bool)
+			}
+		}
+	}
+
+	if raw, ok := val["network"]; ok {
+		items := raw.([]interface{})
+		if len(items) > 0 {
+			networkRaw := items[0].(map[string]interface{})
+			if v, ok := networkRaw["sync_remote_virtual_network_peerings"]; ok {
+				featuresMap.Network.SyncRemoteVirtualNetworkPeerings = v.(bool)
 			}
 		}
 	}

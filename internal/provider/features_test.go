@@ -57,6 +57,9 @@ func TestExpandFeatures(t *testing.T) {
 				ResourceGroup: features.ResourceGroupFeatures{
 					PreventDeletionIfContainsResources: true,
 				},
+				Network: features.NetworkFeatures{
+					SyncRemoteVirtualNetworkPeerings: false,
+				},
 			},
 		},
 		{
@@ -98,7 +101,7 @@ func TestExpandFeatures(t *testing.T) {
 					},
 					"network": []interface{}{
 						map[string]interface{}{
-							"relaxed_locking": true,
+							"sync_remote_virtual_network_peerings": true,
 						},
 					},
 					"resource_group": []interface{}{
@@ -154,6 +157,9 @@ func TestExpandFeatures(t *testing.T) {
 				ResourceGroup: features.ResourceGroupFeatures{
 					PreventDeletionIfContainsResources: true,
 				},
+				Network: features.NetworkFeatures{
+					SyncRemoteVirtualNetworkPeerings: true,
+				},
 				TemplateDeployment: features.TemplateDeploymentFeatures{
 					DeleteNestedItemsDuringDeletion: true,
 				},
@@ -206,9 +212,9 @@ func TestExpandFeatures(t *testing.T) {
 							"permanently_delete_on_destroy": false,
 						},
 					},
-					"network_locking": []interface{}{
+					"network": []interface{}{
 						map[string]interface{}{
-							"relaxed_locking": false,
+							"sync_remote_virtual_network_peerings": false,
 						},
 					},
 					"resource_group": []interface{}{
@@ -263,6 +269,9 @@ func TestExpandFeatures(t *testing.T) {
 				},
 				ResourceGroup: features.ResourceGroupFeatures{
 					PreventDeletionIfContainsResources: false,
+				},
+				Network: features.NetworkFeatures{
+					SyncRemoteVirtualNetworkPeerings: false,
 				},
 				TemplateDeployment: features.TemplateDeploymentFeatures{
 					DeleteNestedItemsDuringDeletion: false,
@@ -1012,6 +1021,71 @@ func TestExpandFeaturesResourceGroup(t *testing.T) {
 		result := expandFeatures(testCase.Input)
 		if !reflect.DeepEqual(result.ResourceGroup, testCase.Expected.ResourceGroup) {
 			t.Fatalf("Expected %+v but got %+v", result.ResourceGroup, testCase.Expected.ResourceGroup)
+		}
+	}
+}
+
+func TestExpandFeaturesNetwork(t *testing.T) {
+	testData := []struct {
+		Name     string
+		Input    []interface{}
+		EnvVars  map[string]interface{}
+		Expected features.UserFeatures
+	}{
+		{
+			Name: "Empty Block",
+			Input: []interface{}{
+				map[string]interface{}{
+					"network": []interface{}{},
+				},
+			},
+			Expected: features.UserFeatures{
+				Network: features.NetworkFeatures{
+					SyncRemoteVirtualNetworkPeerings: false,
+				},
+			},
+		},
+		{
+			Name: "Sync Remote Virtual Network Peerings",
+			Input: []interface{}{
+				map[string]interface{}{
+					"network": []interface{}{
+						map[string]interface{}{
+							"sync_remote_virtual_network_peerings": true,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				Network: features.NetworkFeatures{
+					SyncRemoteVirtualNetworkPeerings: true,
+				},
+			},
+		},
+		{
+			Name: "Sync Remote Virtual Network Peerings disabled",
+			Input: []interface{}{
+				map[string]interface{}{
+					"network": []interface{}{
+						map[string]interface{}{
+							"sync_remote_virtual_network_peerings": false,
+						},
+					},
+				},
+			},
+			Expected: features.UserFeatures{
+				Network: features.NetworkFeatures{
+					SyncRemoteVirtualNetworkPeerings: false,
+				},
+			},
+		},
+	}
+
+	for _, testCase := range testData {
+		t.Logf("[DEBUG] Test Case: %q", testCase.Name)
+		result := expandFeatures(testCase.Input)
+		if !reflect.DeepEqual(result.Network, testCase.Expected.Network) {
+			t.Fatalf("Expected %+v but got %+v", result.Network, testCase.Expected.Network)
 		}
 	}
 }

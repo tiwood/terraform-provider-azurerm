@@ -68,6 +68,10 @@ provider "azurerm" {
       roll_instances_when_required  = true
       scale_to_zero_before_deletion = true
     }
+
+    network {
+      sync_remote_virtual_network_peerings = true
+    }
   }
 }
 ```
@@ -93,6 +97,8 @@ The `features` block supports the following:
 * `virtual_machine` - (Optional) A `virtual_machine` block as defined below.
 
 * `virtual_machine_scale_set` - (Optional) A `virtual_machine_scale_set` block as defined below.
+
+* `network` - (Optional) A `network` block as definied below.
 
 ---
 
@@ -185,3 +191,10 @@ The `virtual_machine_scale_set` block supports the following:
 * `roll_instances_when_required` - (Optional) Should the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources automatically roll the instances in the Scale Set when Required (for example when updating the Sku/Image). Defaults to `true`.
 
 * `scale_to_zero_before_deletion` - (Optional) Should the `azurerm_linux_virtual_machine_scale_set` and `azurerm_windows_virtual_machine_scale_set` resources scale to 0 instances before deleting the resource. Defaults to `true`.
+
+---
+
+The `network` block supports the following:
+
+* `sync_remote_virtual_network_peerings` - If this feature is enabled, remote virtual network peerings will be synchronized if the address space of an
+Virtual network resource changes. This requires write permissions on the remote virtual network peering. Defaults to `false`.

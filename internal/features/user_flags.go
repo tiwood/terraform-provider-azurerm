@@ -10,6 +10,7 @@ type UserFeatures struct {
 	TemplateDeployment     TemplateDeploymentFeatures
 	LogAnalyticsWorkspace  LogAnalyticsWorkspaceFeatures
 	ResourceGroup          ResourceGroupFeatures
+	Network                NetworkFeatures
 }
 
 type CognitiveAccountFeatures struct {
@@ -58,4 +59,8 @@ type ApiManagementFeatures struct {
 
 type ApplicationInsightFeatures struct {
 	DisableGeneratedRule bool
+}
+
+type NetworkFeatures struct {
+	SyncRemoteVirtualNetworkPeerings bool
 }

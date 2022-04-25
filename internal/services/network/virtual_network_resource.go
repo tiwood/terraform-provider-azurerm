@@ -250,6 +250,79 @@ func resourceVirtualNetworkCreateUpdate(d *pluginsdk.ResourceData, meta interfac
 		return fmt.Errorf("waiting for provisioning state of %s: %+v", id, err)
 	}
 
+	shouldSyncRemotePeerings := meta.(*clients.Client).Features.Network.SyncRemoteVirtualNetworkPeerings
+
+	// if the address space of the virtual network changes, we also need to trigger
+	// a synchronization on each remote peering
+	if !d.IsNewResource() && d.HasChange("address_space") && shouldSyncRemotePeerings {
+
+		vnetPeeringsClient := meta.(*clients.Client).Network.VnetPeeringsClient
+		localPeerings, err := vnetPeeringsClient.ListComplete(ctx, id.ResourceGroup, id.Name)
+		if err != nil {
+			return fmt.Errorf("reading vnet peerings of existing vnet %s failed: %+v", id.Name, err)
+		}
+
+		for localPeerings.NotDone() {
+			localPeering := localPeerings.Value()
+			remoteVnetID := *localPeering.RemoteVirtualNetwork.ID
+
+			parsedRemoteVnetID, err := parse.VirtualNetworkID(remoteVnetID)
+			if err != nil {
+				return fmt.Errorf("unable to parse remote vnet id: %s", err)
+			}
+
+			// the local peering does not contain the Resource ID of the remote peering,
+			// we need to find it by listing the remote peerings and matching the remote
+			// virtual network ID to our local virtual network
+			remotePeerings, err := vnetPeeringsClient.ListComplete(ctx, parsedRemoteVnetID.ResourceGroup, parsedRemoteVnetID.Name)
+			if err != nil {
+				return fmt.Errorf("reading vnet peerings of remote vnet %s failed: %+v", parsedRemoteVnetID.Name, err)
+			}
+
+			for remotePeerings.NotDone() {
+				remotePeering := remotePeerings.Value()
+
+				// we want to update the remote peering that matches our local virtual
+				// network. Identified by the matching the Resource IDs
+				if *remotePeering.RemoteVirtualNetwork.ID == id.ID() {
+					remotePeeringID := *remotePeering.ID
+
+					locks.ByID(remotePeeringID)
+					defer locks.UnlockByID(remotePeeringID)
+
+					parsedRemotePeeringID, err := parse.VirtualNetworkPeeringID(remotePeeringID)
+					if err != nil {
+						return fmt.Errorf("unable to parse remote peering id: %s", err)
+					}
+					remotePeering, err := vnetPeeringsClient.Get(ctx, parsedRemotePeeringID.ResourceGroup, parsedRemotePeeringID.VirtualNetworkName, parsedRemotePeeringID.Name)
+					if err != nil {
+						return fmt.Errorf("unable to get remote peering with id %s: %s", remotePeeringID, err)
+					}
+					future, err := vnetPeeringsClient.CreateOrUpdate(ctx, parsedRemotePeeringID.ResourceGroup, parsedRemotePeeringID.VirtualNetworkName, parsedRemotePeeringID.Name, remotePeering, network.SyncRemoteAddressSpaceTrue)
+					if err != nil {
+						return fmt.Errorf("creating/updating %s: %+v", id, err)
+					}
+					if err = future.WaitForCompletionRef(ctx, client.Client); err != nil {
+						return fmt.Errorf("waiting for creation/update of %s: %+v", id, err)
+					}
+
+					// we found and updated the remote peering, no need to check
+					// other peerings as the peerings have a 1:1 relationship
+					break
+				}
+
+				// no match yet, continue
+				if err := remotePeerings.NextWithContext(ctx); err != nil {
+					return fmt.Errorf("enumerating remote peerings: %s", err)
+				}
+			}
+
+			if err := localPeerings.NextWithContext(ctx); err != nil {
+				return fmt.Errorf("enumerating local peerings: %s", err)
+			}
+		}
+	}
+
 	d.SetId(id.ID())
 	return resourceVirtualNetworkRead(d, meta)
 }
