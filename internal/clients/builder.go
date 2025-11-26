@@ -5,6 +5,7 @@ package clients
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -37,18 +38,14 @@ type ClientBuilder struct {
 const azureStackEnvironmentError = `
 The AzureRM Provider supports the different Azure Public Clouds - including China, Public,
 and US Government - however it does not support Azure Stack due to differences in API and
-feature availability.
-
-Terraform instead offers a separate "azurestack" provider which supports the functionality
-and APIs available in Azure Stack via Azure Stack Profiles.
-`
+feature availability`
 
 func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 	var err error
 
 	// point folks towards the separate Azure Stack Provider when using Azure Stack
 	if builder.AuthConfig.Environment.IsAzureStack() {
-		return nil, fmt.Errorf(azureStackEnvironmentError)
+		return nil, errors.New(azureStackEnvironmentError)
 	}
 
 	var resourceManagerAuth, storageAuth, synapseAuth, batchManagementAuth, keyVaultAuth auth.Authorizer
@@ -113,7 +110,7 @@ func Build(ctx context.Context, builder ClientBuilder) (*Client, error) {
 
 	resourceManagerEndpoint, ok := builder.AuthConfig.Environment.ResourceManager.Endpoint()
 	if !ok {
-		return nil, fmt.Errorf("unable to determine resource manager endpoint for the current environment")
+		return nil, errors.New("unable to determine resource manager endpoint for the current environment")
 	}
 
 	client := Client{

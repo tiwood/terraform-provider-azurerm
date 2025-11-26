@@ -85,9 +85,9 @@ func dataSourceDiskEncryptionSetRead(d *pluginsdk.ResourceData, meta interface{}
 	if props := model.Properties; props != nil {
 		d.Set("auto_key_rotation_enabled", props.RotationToLatestKeyVersionEnabled)
 
-		if props.ActiveKey != nil && props.ActiveKey.KeyUrl != "" {
-			keyVaultURI := props.ActiveKey.KeyUrl
-			isHSMURI, err, _, _ := managedHsmHelpers.IsManagedHSMURI(env, keyVaultURI)
+		if props.ActiveKey != nil && props.ActiveKey.KeyURL != "" {
+			keyVaultURI := props.ActiveKey.KeyURL
+			isHSMURI, _, _, err := managedHsmHelpers.IsManagedHSMURI(env, keyVaultURI)
 			if err != nil {
 				return fmt.Errorf("parsing key vault URI: %+v", err)
 			}

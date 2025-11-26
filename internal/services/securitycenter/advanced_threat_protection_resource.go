@@ -4,11 +4,13 @@
 package securitycenter
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
 
 	"github.com/Azure/azure-sdk-for-go/services/preview/security/mgmt/v3.0/security" // nolint: staticcheck
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/azure"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -110,10 +112,10 @@ func resourceAdvancedThreatProtectionCreateUpdate(d *pluginsdk.ResourceData, met
 					return resp, "diff", nil
 				}
 			}
-			return resp, "error", fmt.Errorf("Properties was nil")
+			return resp, "error", errors.New("properties was nil")
 		},
-		MinTimeout:                1 * time.Minute,
-		ContinuousTargetOccurence: 3,
+		MinTimeout:                30 * time.Second,
+		ContinuousTargetOccurence: 10,
 		Timeout:                   time.Until(deadline),
 	}
 
@@ -148,7 +150,7 @@ func resourceAdvancedThreatProtectionRead(d *pluginsdk.ResourceData, meta interf
 
 	d.Set("target_resource_id", id.TargetResourceID)
 	if atpp := resp.AdvancedThreatProtectionProperties; atpp != nil {
-		d.Set("enabled", resp.IsEnabled)
+		d.Set("enabled", pointer.From(resp.IsEnabled))
 	}
 
 	return nil

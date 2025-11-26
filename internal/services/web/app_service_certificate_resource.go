@@ -88,19 +88,19 @@ func resourceAppServiceCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 	}
 
 	if appServicePlanId != "" {
-		certificate.CertificateProperties.ServerFarmID = &appServicePlanId
+		certificate.ServerFarmID = &appServicePlanId
 	}
 
 	if pfxBlob != "" {
 		decodedPfxBlob, err := base64.StdEncoding.DecodeString(pfxBlob)
 		if err != nil {
-			return fmt.Errorf("Could not decode PFX blob: %+v", err)
+			return fmt.Errorf("could not decode PFX blob: %+v", err)
 		}
-		certificate.CertificateProperties.PfxBlob = &decodedPfxBlob
+		certificate.PfxBlob = &decodedPfxBlob
 	}
 
 	if keyVaultSecretId != "" {
-		parsedSecretId, err := keyVaultParse.ParseNestedItemID(keyVaultSecretId)
+		parsedSecretId, err := keyVaultParse.ParseOptionallyVersionedNestedItemID(keyVaultSecretId)
 		if err != nil {
 			return err
 		}
@@ -117,12 +117,12 @@ func resourceAppServiceCertificateCreateUpdate(d *pluginsdk.ResourceData, meta i
 				return fmt.Errorf("retrieving the Resource ID for the Key Vault at URL %q: %s", keyVaultBaseUrl, err)
 			}
 			if keyVaultId == nil {
-				return fmt.Errorf("Unable to determine the Resource ID for the Key Vault at URL %q", keyVaultBaseUrl)
+				return fmt.Errorf("unable to determine the Resource ID for the Key Vault at URL %q", keyVaultBaseUrl)
 			}
 		}
 
-		certificate.CertificateProperties.KeyVaultID = keyVaultId
-		certificate.CertificateProperties.KeyVaultSecretName = utils.String(parsedSecretId.Name)
+		certificate.KeyVaultID = keyVaultId
+		certificate.KeyVaultSecretName = utils.String(parsedSecretId.Name)
 	}
 
 	if _, err := client.CreateOrUpdate(ctx, id.ResourceGroup, id.Name, certificate); err != nil {
@@ -253,7 +253,7 @@ func resourceAppServiceCertificateSchema() map[string]*pluginsdk.Schema {
 			Optional:         true,
 			ForceNew:         true,
 			DiffSuppressFunc: keyVaultSuppress.DiffSuppressIgnoreKeyVaultKeyVersion,
-			ValidateFunc:     keyVaultValidate.NestedItemId,
+			ValidateFunc:     keyVaultValidate.NestedItemIdWithOptionalVersion,
 			ConflictsWith:    []string{"pfx_blob", "password"},
 			ExactlyOneOf:     []string{"key_vault_secret_id", "pfx_blob"},
 		},
@@ -307,6 +307,6 @@ func resourceAppServiceCertificateSchema() map[string]*pluginsdk.Schema {
 			Computed: true,
 		},
 
-		"tags": tags.Schema(),
+		"tags": commonschema.Tags(),
 	}
 }

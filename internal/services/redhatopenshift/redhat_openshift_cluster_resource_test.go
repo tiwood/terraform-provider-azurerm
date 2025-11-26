@@ -214,7 +214,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain  = "aro-%[3]s.com"
-    version = "4.13.23"
+    version = "4.14.16"
   }
 
   network_profile {
@@ -243,7 +243,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = azuread_application.test.application_id
+    client_id     = azuread_application.test.client_id
     client_secret = azuread_service_principal_password.test.value
   }
 
@@ -336,7 +336,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain  = "aro-%[3]s.com"
-    version = "4.13.23"
+    version = "4.14.16"
   }
 
   network_profile {
@@ -393,7 +393,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain      = "aro-%[3]s.com"
-    version     = "4.13.23"
+    version     = "4.14.16"
     pull_secret = <<SECRET
 %[4]s
 SECRET
@@ -425,7 +425,7 @@ SECRET
   }
 
   service_principal {
-    client_id     = azuread_application.test.application_id
+    client_id     = azuread_application.test.client_id
     client_secret = azuread_service_principal_password.test.value
   }
 
@@ -448,7 +448,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain  = "aro-%[3]s.com"
-    version = "4.13.23"
+    version = "4.14.16"
   }
 
   network_profile {
@@ -478,7 +478,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = azuread_application.test.application_id
+    client_id     = azuread_application.test.client_id
     client_secret = azuread_service_principal_password.test.value
   }
 
@@ -501,7 +501,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain  = "aro-%[3]s.com"
-    version = "4.13.23"
+    version = "4.14.16"
   }
 
   network_profile {
@@ -530,7 +530,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = azuread_application.test.application_id
+    client_id     = azuread_application.test.client_id
     client_secret = azuread_service_principal_password.test.value
   }
 
@@ -553,7 +553,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain       = "aro-%[3]s.com"
-    version      = "4.13.23"
+    version      = "4.14.16"
     fips_enabled = true
   }
 
@@ -583,7 +583,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = azuread_application.test.application_id
+    client_id     = azuread_application.test.client_id
     client_secret = azuread_service_principal_password.test.value
   }
 
@@ -662,7 +662,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain  = "aro-%[3]s.com"
-    version = "4.13.23"
+    version = "4.14.16"
   }
 
   network_profile {
@@ -692,7 +692,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = azuread_application.test.application_id
+    client_id     = azuread_application.test.client_id
     client_secret = azuread_service_principal_password.test.value
   }
 
@@ -718,6 +718,7 @@ resource "azurerm_key_vault" "test" {
   sku_name                    = "premium"
   enabled_for_disk_encryption = true
   purge_protection_enabled    = true
+  soft_delete_retention_days  = 7
 }
 
 resource "azurerm_key_vault_access_policy" "service-principal" {
@@ -797,7 +798,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain  = "aro-%[3]s.com"
-    version = "4.13.23"
+    version = "4.14.16"
   }
 
   network_profile {
@@ -830,7 +831,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = azuread_application.test.application_id
+    client_id     = azuread_application.test.client_id
     client_secret = azuread_service_principal_password.test.value
   }
 
@@ -856,7 +857,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
 
   cluster_profile {
     domain                      = "aro-%[3]s.com"
-    version                     = "4.13.23"
+    version                     = "4.14.16"
     managed_resource_group_name = "acctestrg-aro-infra-%[3]s"
   }
 
@@ -886,7 +887,7 @@ resource "azurerm_redhat_openshift_cluster" "test" {
   }
 
   service_principal {
-    client_id     = azuread_application.test.application_id
+    client_id     = azuread_application.test.client_id
     client_secret = azuread_service_principal_password.test.value
   }
 
@@ -922,7 +923,7 @@ resource "azuread_application" "test" {
 }
 
 resource "azuread_service_principal" "test" {
-  application_id = azuread_application.test.application_id
+  client_id = azuread_application.test.client_id
 }
 
 resource "azuread_service_principal_password" "test" {
@@ -935,13 +936,13 @@ data "azuread_service_principal" "redhatopenshift" {
 }
 
 resource "azurerm_role_assignment" "role_network1" {
-  scope                = azurerm_virtual_network.test.id
+  scope                = azurerm_resource_group.test.id
   role_definition_name = "Network Contributor"
   principal_id         = azuread_service_principal.test.object_id
 }
 
 resource "azurerm_role_assignment" "role_network2" {
-  scope                = azurerm_virtual_network.test.id
+  scope                = azurerm_resource_group.test.id
   role_definition_name = "Network Contributor"
   principal_id         = data.azuread_service_principal.redhatopenshift.object_id
 }
@@ -964,6 +965,8 @@ resource "azurerm_subnet" "main_subnet" {
   virtual_network_name = azurerm_virtual_network.test.name
   address_prefixes     = ["10.0.0.0/23"]
   service_endpoints    = ["Microsoft.Storage", "Microsoft.ContainerRegistry"]
+
+  private_link_service_network_policies_enabled = false
 }
 
 resource "azurerm_subnet" "worker_subnet" {

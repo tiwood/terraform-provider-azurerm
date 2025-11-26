@@ -370,7 +370,7 @@ func resourceHealthcareServiceDelete(d *pluginsdk.ResourceData, meta interface{}
 
 	id, err := service.ParseServiceID(d.Id())
 	if err != nil {
-		return fmt.Errorf("Parsing Azure Resource ID: %+v", err)
+		return err
 	}
 
 	err = client.ServicesDeleteThenPoll(ctx, *id)
@@ -462,7 +462,6 @@ func flattenAccessPolicies(policies *[]service.ServiceAccessPolicyEntry) []strin
 
 	for _, policy := range *policies {
 		result = append(result, policy.ObjectId)
-
 	}
 
 	return result

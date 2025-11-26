@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
 func resourceDataFactoryLinkedServiceSQLServer() *pluginsdk.Resource {
@@ -188,15 +188,15 @@ func resourceDataFactoryLinkedServiceSQLServerCreateUpdate(d *pluginsdk.Resource
 	}
 
 	if v, ok := d.GetOk("connection_string"); ok {
-		sqlServerLinkedService.SQLServerLinkedServiceTypeProperties.ConnectionString = v.(string)
+		sqlServerLinkedService.ConnectionString = v.(string)
 	}
 
 	if v, ok := d.GetOk("user_name"); ok {
-		sqlServerLinkedService.SQLServerLinkedServiceTypeProperties.UserName = v.(string)
+		sqlServerLinkedService.UserName = v.(string)
 	}
 
 	if v, ok := d.GetOk("key_vault_connection_string"); ok {
-		sqlServerLinkedService.SQLServerLinkedServiceTypeProperties.ConnectionString = expandAzureKeyVaultSecretReference(v.([]interface{}))
+		sqlServerLinkedService.ConnectionString = expandAzureKeyVaultSecretReference(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {

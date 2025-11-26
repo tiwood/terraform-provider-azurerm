@@ -6,14 +6,17 @@ package mssql_test
 import (
 	"context"
 	"fmt"
+	"os"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MsSqlServerTransparentDataEncryptionResource struct{}
@@ -34,6 +37,10 @@ func TestAccMsSqlServerTransparentDataEncryption_keyVault(t *testing.T) {
 }
 
 func TestAccMsSqlServerTransparentDataEncryption_managedHSM(t *testing.T) {
+	if os.Getenv("ARM_TEST_HSM_KEY") == "" {
+		t.Skip("Skipping as ARM_TEST_HSM_KEY is not specified")
+	}
+
 	data := acceptance.BuildTestData(t, "azurerm_mssql_server_transparent_data_encryption", "test")
 	r := MsSqlServerTransparentDataEncryptionResource{}
 
@@ -116,16 +123,18 @@ func (MsSqlServerTransparentDataEncryptionResource) Exists(ctx context.Context, 
 		return nil, err
 	}
 
-	resp, err := client.MSSQL.EncryptionProtectorClient.Get(ctx, id.ResourceGroup, id.ServerName)
+	serverId := commonids.NewSqlServerID(id.SubscriptionId, id.ResourceGroup, id.ServerName)
+
+	resp, err := client.MSSQL.EncryptionProtectorClient.Get(ctx, serverId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return nil, fmt.Errorf("Encryption protector for server %q (Resource Group %q) does not exist", id.ServerName, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			return nil, fmt.Errorf("%s does not exist", *id)
 		}
 
-		return nil, fmt.Errorf("reading Encryption Protector for server %q (Resource Group %q): %v", id.ServerName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("reading %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (r MsSqlServerTransparentDataEncryptionResource) baseKeyVault(data acceptance.TestData) string {
@@ -274,7 +283,7 @@ resource "azurerm_resource_group" "test" {
 }
 
 resource "azurerm_key_vault" "test" {
-  name                       = "acc%[2]s"
+  name                       = "acctest%[2]s"
   location                   = azurerm_resource_group.test.location
   resource_group_name        = azurerm_resource_group.test.name
   tenant_id                  = data.azurerm_client_config.current.tenant_id
@@ -312,7 +321,7 @@ resource "azurerm_key_vault" "test" {
 }
 resource "azurerm_key_vault_certificate" "cert" {
   count        = 3
-  name         = "acchsmcert${count.index}"
+  name         = "acctesthsmcert${count.index}"
   key_vault_id = azurerm_key_vault.test.id
   certificate_policy {
     issuer_parameters {
@@ -352,7 +361,7 @@ resource "azurerm_key_vault_certificate" "cert" {
 }
 
 resource "azurerm_key_vault_managed_hardware_security_module" "test" {
-  name                     = "kvHsm%[2]s"
+  name                     = "acctestkvHsm%[2]s"
   resource_group_name      = azurerm_resource_group.test.name
   location                 = azurerm_resource_group.test.location
   sku_name                 = "Standard_B1"

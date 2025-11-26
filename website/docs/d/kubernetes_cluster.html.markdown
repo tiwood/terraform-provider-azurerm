@@ -22,7 +22,7 @@ data "azurerm_kubernetes_cluster" "example" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -64,7 +64,7 @@ The following attributes are exported:
 
 * `private_fqdn` - The FQDN of this Kubernetes Cluster when private link has been enabled. This name is only resolvable inside the Virtual Network where the Azure Kubernetes Service is located
 
--> **NOTE:**  At this time Private Link is in Public Preview.
+-> **Note:** At this time Private Link is in Public Preview.
 
 * `kube_admin_config` - A `kube_admin_config` block as defined below. This is only available when Role Based Access Control with Azure Active Directory is enabled and local accounts are not disabled.
 
@@ -114,8 +114,6 @@ The following attributes are exported:
 
 * `tags` - A mapping of tags assigned to this resource.
 
-* `custom_ca_trust_certificates_base64` - A list of custom base64 encoded CAs used by this Managed Kubernetes Cluster.
-
 ---
 
 An `aci_connector_linux` block exports the following:
@@ -132,9 +130,9 @@ An `agent_pool_profile` block exports the following:
 
 * `max_pods` - The maximum number of pods that can run on each agent.
 
-* `enable_auto_scaling` - If the auto-scaler is enabled.
+* `auto_scaling_enabled` - If the auto-scaler is enabled.
 
-* `enable_node_public_ip` - If the Public IPs for the nodes in this Agent Pool are enabled.
+* `node_public_ip_enabled` - If the Public IPs for the nodes in this Agent Pool are enabled.
 
 * `host_group_id` - The ID of a Dedicated Host Group that this Node Pool should be run on. Changing this forces a new resource to be created.
 
@@ -166,17 +164,11 @@ An `agent_pool_profile` block exports the following:
 
 An `azure_active_directory_role_based_access_control` block exports the following:
 
-* `managed` - Is the Azure Active Directory integration Managed, meaning that Azure will create/manage the Service Principal used for integration?
-
 * `tenant_id` - The Tenant ID used for Azure Active Directory Application.
 
 * `admin_group_object_ids` - A list of Object IDs of Azure Active Directory Groups which should have Admin Role on the Cluster.
 
 * `azure_rbac_enabled` - Is Role Based Access Control based on Azure AD enabled?
-
-* `client_app_id` - The Client ID of an Azure Active Directory Application.
-
-* `server_app_id` - The Server ID of an Azure Active Directory Application.
 
 ---
 
@@ -187,6 +179,8 @@ A `upgrade_settings` block exports the following:
 * `node_soak_duration_in_minutes` - The amount of time in minutes to wait after draining a node and before reimaging it and moving on to next node.
 
 * `max_surge` - The maximum number or percentage of nodes that will be added to the Node Pool size during an upgrade.
+
+* `undrainable_node_behavior` - The action when a node is undrainable during upgrade. Possible values are `Cordon` and `Schedule`.
 
 ---
 
@@ -222,7 +216,7 @@ The `kube_admin_config` and `kube_config` blocks export the following:
 
 * `password` - A password or token used to authenticate to the Kubernetes cluster.
 
--> **NOTE:** It's possible to use these credentials with [the Kubernetes Provider](/docs/providers/kubernetes/index.html) like so:
+-> **Note:** It's possible to use these credentials with [the Kubernetes Provider](/docs/providers/kubernetes/index.html) like so:
 
 ```hcl
 provider "kubernetes" {
@@ -341,8 +335,6 @@ A `storage_profile` block exports the following:
 
 * `disk_driver_enabled` Is the Disk CSI driver enabled?
 
-* `disk_driver_version` The configured Disk CSI Driver version.
-
 * `file_driver_enabled` Is the File CSI driver enabled?
 
 * `snapshot_controller_enabled` Is the Snapshot Controller enabled?
@@ -381,6 +373,9 @@ A `service_mesh_profile` block exports the following:
 
 * `mode` - The mode of the service mesh.
 
+* `revisions` - List of revisions of the Istio control plane. When an upgrade is not in progress, this holds one value. When canary upgrade is in progress, this can only hold two consecutive values. [Learn More](
+  https://learn.microsoft.com/en-us/azure/aks/istio-upgrade).
+
 * `internal_ingress_gateway_enabled` - Is Istio Internal Ingress Gateway enabled?
 
 * `external_ingress_gateway_enabled` - Is Istio External Ingress Gateway enabled?
@@ -405,6 +400,12 @@ A `certificate_authority` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Managed Kubernetes Cluster (AKS).
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.ContainerService` - 2025-07-01

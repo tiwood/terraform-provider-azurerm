@@ -23,7 +23,7 @@ output "primary_access_key" {
 }
 ```
 
-## Argument Reference
+## Arguments Reference
 
 The following arguments are supported:
 
@@ -39,6 +39,8 @@ The following attributes are exported:
 
 * `location` - The Azure location where the Cognitive Services Account exists
 
+* `local_auth_enabled` - Whether local authentication methods is enabled for the Cognitive Account.
+
 * `kind` - The kind of the Cognitive Services Account
 
 * `sku_name` - The SKU name of the Cognitive Services Account
@@ -50,6 +52,8 @@ The following attributes are exported:
 * `primary_access_key` - The primary access key of the Cognitive Services Account
 
 * `secondary_access_key` - The secondary access key of the Cognitive Services Account
+
+-> **Note:** The `primary_access_key` and `secondary_access_key` properties are only available when `local_auth_enabled` is `true`.
 
 * `tags` - A mapping of tags to assigned to the resource.
 
@@ -67,6 +71,12 @@ An `identity` block exports the following:
 
 ## Timeouts
 
-The `timeouts` block allows you to specify [timeouts](https://www.terraform.io/language/resources/syntax#operation-timeouts) for certain actions:
+The `timeouts` block allows you to specify [timeouts](https://developer.hashicorp.com/terraform/language/resources/configure#define-operation-timeouts) for certain actions:
 
 * `read` - (Defaults to 5 minutes) Used when retrieving the Cognitive Services Account.
+
+## API Providers
+<!-- This section is generated, changes will be overwritten -->
+This data source uses the following Azure API Providers:
+
+* `Microsoft.CognitiveServices` - 2025-06-01

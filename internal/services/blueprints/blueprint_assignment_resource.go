@@ -4,6 +4,7 @@
 package blueprints
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -251,7 +252,7 @@ func resourceBlueprintAssignmentRead(d *pluginsdk.ResourceData, meta interface{}
 			return nil
 		}
 
-		return fmt.Errorf("Read failed for Blueprint Assignment (%q): %+v", id.String(), err)
+		return fmt.Errorf("read failed for Blueprint Assignment (%q): %+v", id.String(), err)
 	}
 
 	d.Set("name", id.BlueprintAssignmentName)
@@ -321,7 +322,7 @@ func resourceBlueprintAssignmentDelete(d *pluginsdk.ResourceData, meta interface
 
 	deadline, ok := ctx.Deadline()
 	if !ok {
-		return fmt.Errorf("internal-error: context had no deadline")
+		return errors.New("internal-error: context had no deadline")
 	}
 	stateConf := &pluginsdk.StateChangeConf{
 		Pending: []string{

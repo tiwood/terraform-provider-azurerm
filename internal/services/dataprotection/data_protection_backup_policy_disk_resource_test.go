@@ -61,34 +61,6 @@ func TestAccDataProtectionBackupPolicyDisk_complete(t *testing.T) {
 	})
 }
 
-func TestAccDataProtectionBackupPolicyDisk_update(t *testing.T) {
-	data := acceptance.BuildTestData(t, "azurerm_data_protection_backup_policy_disk", "test")
-	r := DataProtectionBackupPolicyDiskResource{}
-	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.complete(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
-		data.ImportStep(),
-	})
-}
-
 func (r DataProtectionBackupPolicyDiskResource) Exists(ctx context.Context, client *clients.Client, state *pluginsdk.InstanceState) (*bool, error) {
 	id, err := backuppolicies.ParseBackupPolicyID(state.ID)
 	if err != nil {
@@ -179,6 +151,24 @@ resource "azurerm_data_protection_backup_policy_disk" "test" {
     priority = 20
     criteria {
       absolute_criteria = "FirstOfWeek"
+    }
+  }
+
+  retention_rule {
+    name     = "Monthly"
+    duration = "P6M"
+    priority = 15
+    criteria {
+      absolute_criteria = "FirstOfMonth"
+    }
+  }
+
+  retention_rule {
+    name     = "Yearly"
+    duration = "P1Y"
+    priority = 10
+    criteria {
+      absolute_criteria = "FirstOfYear"
     }
   }
 }

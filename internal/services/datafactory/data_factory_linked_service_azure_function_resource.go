@@ -17,7 +17,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
 func resourceDataFactoryLinkedServiceAzureFunction() *pluginsdk.Resource {
@@ -167,7 +167,7 @@ func resourceDataFactoryLinkedServiceAzureFunctionCreateUpdate(d *pluginsdk.Reso
 	}
 
 	if v, ok := d.GetOk("key_vault_key"); ok {
-		azureFunctionLinkedService.AzureFunctionLinkedServiceTypeProperties.FunctionKey = expandAzureKeyVaultSecretReference(v.([]interface{}))
+		azureFunctionLinkedService.FunctionKey = expandAzureKeyVaultSecretReference(v.([]interface{}))
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -230,12 +230,12 @@ func resourceDataFactoryLinkedServiceAzureFunctionRead(d *pluginsdk.ResourceData
 		return fmt.Errorf("classifying Data Factory Linked Service Azure Function %s: Expected: %q Received: %q", id, datafactory.TypeBasicLinkedServiceTypeAzureFunction, *resp.Type)
 	}
 
-	d.Set("url", azureFunction.AzureFunctionLinkedServiceTypeProperties.FunctionAppURL)
+	d.Set("url", azureFunction.FunctionAppURL)
 
 	d.Set("additional_properties", azureFunction.AdditionalProperties)
 	d.Set("description", azureFunction.Description)
 
-	if functionKey := azureFunction.AzureFunctionLinkedServiceTypeProperties.FunctionKey; functionKey != nil {
+	if functionKey := azureFunction.FunctionKey; functionKey != nil {
 		if keyVaultKey, ok := functionKey.AsAzureKeyVaultSecretReference(); !ok {
 			return fmt.Errorf("classifying Data Factory Azure Key Vault Secret %s: Expected: %q Received: %q", id, datafactory.TypeAzureKeyVaultSecret, keyVaultKey.Type)
 		} else if err := d.Set("key_vault_key", flattenAzureKeyVaultSecretReference(keyVaultKey)); err != nil {

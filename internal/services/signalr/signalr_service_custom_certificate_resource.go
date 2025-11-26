@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2023-02-01/signalr"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/signalr/2024-03-01/signalr"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/sdk"
 	keyVaultParse "github.com/hashicorp/terraform-provider-azurerm/internal/services/keyvault/parse"
@@ -142,7 +142,6 @@ func (r CustomCertSignalrServiceResource) Read() sdk.ResourceFunc {
 		Timeout: 5 * time.Minute,
 		Func: func(ctx context.Context, metadata sdk.ResourceMetaData) error {
 			client := metadata.Client.SignalR.SignalRClient
-			keyVaultClient := metadata.Client.KeyVault
 			id, err := signalr.ParseCustomCertificateID(metadata.ResourceData.Id())
 			if err != nil {
 				return err
@@ -163,16 +162,6 @@ func (r CustomCertSignalrServiceResource) Read() sdk.ResourceFunc {
 			vaultBasedUri := resp.Model.Properties.KeyVaultBaseUri
 			certName := resp.Model.Properties.KeyVaultSecretName
 
-			subscriptionResourceId := commonids.NewSubscriptionID(id.SubscriptionId)
-			keyVaultIdRaw, err := keyVaultClient.KeyVaultIDFromBaseUrl(ctx, subscriptionResourceId, vaultBasedUri)
-			if err != nil {
-				return fmt.Errorf("getting key vault base uri from %s: %+v", id, err)
-			}
-			vaultId, err := commonids.ParseKeyVaultID(*keyVaultIdRaw)
-			if err != nil {
-				return fmt.Errorf("parsing key vault %s: %+v", vaultId, err)
-			}
-
 			signalrServiceId := signalr.NewSignalRID(id.SubscriptionId, id.ResourceGroupName, id.SignalRName).ID()
 
 			certVersion := ""
@@ -190,7 +179,7 @@ func (r CustomCertSignalrServiceResource) Read() sdk.ResourceFunc {
 				Name:               id.CustomCertificateName,
 				CustomCertId:       certId,
 				SignalRServiceId:   signalrServiceId,
-				CertificateVersion: utils.NormalizeNilableString(resp.Model.Properties.KeyVaultSecretVersion),
+				CertificateVersion: pointer.From(resp.Model.Properties.KeyVaultSecretVersion),
 			}
 
 			return metadata.Encode(&state)

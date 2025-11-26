@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/Azure/azure-sdk-for-go/services/cosmos-db/mgmt/2021-10-15/documentdb" // nolint: staticcheck
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-05-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
@@ -56,13 +56,13 @@ func ExpandCosmosDBThroughputSettingsUpdateParametersLegacy(d *pluginsdk.Resourc
 	}
 
 	if v, exists := d.GetOk("throughput"); exists {
-		throughputParameters.ThroughputSettingsUpdateProperties.Resource.Throughput = ConvertThroughputFromResourceDataLegacy(v)
+		throughputParameters.Resource.Throughput = ConvertThroughputFromResourceDataLegacy(v)
 	}
 
 	if _, hasAutoscaleSettings := d.GetOk("autoscale_settings"); hasAutoscaleSettings {
 		// If updating the autoscale throughput, set the manual throughput to nil to ensure the autoscale throughput is applied
-		throughputParameters.ThroughputSettingsUpdateProperties.Resource.Throughput = nil
-		throughputParameters.ThroughputSettingsUpdateProperties.Resource.AutoscaleSettings = ExpandCosmosDbAutoscaleSettingsResourceLegacy(d)
+		throughputParameters.Resource.Throughput = nil
+		throughputParameters.Resource.AutoscaleSettings = ExpandCosmosDbAutoscaleSettingsResourceLegacy(d)
 	}
 
 	return &throughputParameters

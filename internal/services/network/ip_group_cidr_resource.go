@@ -8,8 +8,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
 	"github.com/hashicorp/go-azure-helpers/lang/response"
-	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2023-11-01/ipgroups"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/network/2025-01-01/ipgroups"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/locks"
@@ -55,8 +56,7 @@ func resourceIpGroupCidr() *pluginsdk.Resource {
 }
 
 func resourceIpGroupCidrCreate(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.IPGroups
-	subscriptionId := meta.(*clients.Client).Account.SubscriptionId
+	client := meta.(*clients.Client).Network.IPGroups
 	ctx, cancel := timeouts.ForCreate(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -66,7 +66,7 @@ func resourceIpGroupCidrCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 	if err != nil {
 		return err
 	}
-	id := parse.NewIpGroupCidrID(subscriptionId, ipGroupId.ResourceGroupName, ipGroupId.IpGroupName, cidrName)
+	id := parse.NewIpGroupCidrID(ipGroupId.SubscriptionId, ipGroupId.ResourceGroupName, ipGroupId.IpGroupName, cidrName)
 
 	locks.ByID(ipGroupId.ID())
 	defer locks.UnlockByID(ipGroupId.ID())
@@ -114,7 +114,7 @@ func resourceIpGroupCidrCreate(d *pluginsdk.ResourceData, meta interface{}) erro
 }
 
 func resourceIpGroupCidrRead(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.IPGroups
+	client := meta.(*clients.Client).Network.IPGroups
 	ctx, cancel := timeouts.ForRead(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 
@@ -136,10 +136,11 @@ func resourceIpGroupCidrRead(d *pluginsdk.ResourceData, meta interface{}) error 
 		if resp.Model.Properties == nil {
 			return fmt.Errorf("retrieving %s: `properties` was nil", ipGroupId)
 		}
-		if !utils.SliceContainsValue(*resp.Model.Properties.IPAddresses, cidr) {
-			d.SetId("")
-			return nil
-		}
+	}
+
+	if !utils.SliceContainsValue(pointer.From(resp.Model.Properties.IPAddresses), cidr) {
+		d.SetId("")
+		return nil
 	}
 
 	d.Set("ip_group_id", ipGroupId.ID())
@@ -149,7 +150,7 @@ func resourceIpGroupCidrRead(d *pluginsdk.ResourceData, meta interface{}) error 
 }
 
 func resourceIpGroupCidrDelete(d *pluginsdk.ResourceData, meta interface{}) error {
-	client := meta.(*clients.Client).Network.Client.IPGroups
+	client := meta.(*clients.Client).Network.IPGroups
 	ctx, cancel := timeouts.ForDelete(meta.(*clients.Client).StopContext, d)
 	defer cancel()
 

@@ -8,12 +8,14 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/hashicorp/go-azure-helpers/lang/pointer"
+	"github.com/hashicorp/go-azure-helpers/lang/response"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/services/mssql/parse"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/pluginsdk"
-	"github.com/hashicorp/terraform-provider-azurerm/utils"
 )
 
 type MsSqlDatabaseExtendedAuditingPolicyResource struct{}
@@ -200,16 +202,18 @@ func (MsSqlDatabaseExtendedAuditingPolicyResource) Exists(ctx context.Context, c
 		return nil, err
 	}
 
-	resp, err := client.MSSQL.DatabaseExtendedBlobAuditingPoliciesClient.Get(ctx, id.ResourceGroup, id.ServerName, id.DatabaseName)
+	dbId := commonids.NewSqlDatabaseID(id.SubscriptionId, id.ResourceGroup, id.ServerName, id.DatabaseName)
+
+	resp, err := client.MSSQL.BlobAuditingPoliciesClient.ExtendedDatabaseBlobAuditingPoliciesGet(ctx, dbId)
 	if err != nil {
-		if utils.ResponseWasNotFound(resp.Response) {
-			return nil, fmt.Errorf("SQL Virtual Machine %q (Server %q, Resource Group %q) does not exist", id.DatabaseName, id.ServerName, id.ResourceGroup)
+		if response.WasNotFound(resp.HttpResponse) {
+			return nil, fmt.Errorf("%s does not exist", *id)
 		}
 
-		return nil, fmt.Errorf("reading SQL Database ExtendedAuditingPolicy %q (Server %q, Resource Group %q): %v", id.DatabaseName, id.ServerName, id.ResourceGroup, err)
+		return nil, fmt.Errorf("reading %s: %v", *id, err)
 	}
 
-	return utils.Bool(resp.ID != nil), nil
+	return pointer.To(resp.Model != nil), nil
 }
 
 func (MsSqlDatabaseExtendedAuditingPolicyResource) template(data acceptance.TestData) string {
@@ -567,10 +571,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   metric {
     category = "AllMetrics"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
   // enabled_log, metric will return all disabled categories
@@ -605,10 +605,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   metric {
     category = "AllMetrics"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
   // enabled_log, metric will return all disabled categories
@@ -647,10 +643,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   metric {
     category = "AllMetrics"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
   // enabled_log, metric will return all disabled categories
@@ -688,10 +680,6 @@ resource "azurerm_monitor_diagnostic_setting" "test" {
 
   metric {
     category = "AllMetrics"
-
-    retention_policy {
-      enabled = false
-    }
   }
 
   // enabled_log, metric will return all disabled categories

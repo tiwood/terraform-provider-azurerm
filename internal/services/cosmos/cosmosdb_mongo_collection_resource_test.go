@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-05-15/cosmosdb"
+	"github.com/hashicorp/go-azure-sdk/resource-manager/cosmosdb/2024-08-15/cosmosdb"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/acceptance/check"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -72,12 +72,6 @@ func TestAccCosmosDbMongoCollection_update(t *testing.T) {
 	r := CosmosMongoCollectionResource{}
 
 	data.ResourceTest(t, r, []acceptance.TestStep{
-		{
-			Config: r.basic(data),
-			Check: acceptance.ComposeAggregateTestCheckFunc(
-				check.That(data.ResourceName).ExistsInAzure(r),
-			),
-		},
 		{
 			Config: r.complete(data),
 			Check: acceptance.ComposeAggregateTestCheckFunc(

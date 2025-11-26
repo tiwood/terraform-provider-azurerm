@@ -1,7 +1,7 @@
 ## Developer Requirements
 
 * [Terraform (Core)](https://www.terraform.io/downloads.html) - version 1.x (0.12.x and above are compatible however 1.x is recommended)
-* [Go](https://golang.org/doc/install) version 1.21.x (to build the provider plugin)
+* [Go](https://golang.org/doc/install) version 1.22.x (to build the provider plugin)
 
 ## Contributor Guides
 
@@ -78,15 +78,17 @@ make acctests SERVICE='<service>' TESTARGS='-run=<nameOfTheTest>' TESTTIMEOUT='6
 
 The following Environment Variables must be set in your shell prior to running acceptance tests:
 
-- `ARM_CLIENT_ID`
-- `ARM_CLIENT_SECRET`
-- `ARM_SUBSCRIPTION_ID`
-- `ARM_TENANT_ID`
-- `ARM_ENVIRONMENT`
-- `ARM_METADATA_HOST`
-- `ARM_TEST_LOCATION`
-- `ARM_TEST_LOCATION_ALT`
-- `ARM_TEST_LOCATION_ALT2`
+* `ARM_CLIENT_ID`
+* `ARM_CLIENT_SECRET`
+* `ARM_SUBSCRIPTION_ID`
+* `ARM_TENANT_ID`
+
+For more information on the environment variables above, see [Azure Provider: Authenticating using a Service Principal with a Client Secret](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/guides/service_principal_client_secret)
+
+* `ARM_ENVIRONMENT`: This defaults to `public`. See [from_name.go](https://github.com/hashicorp/go-azure-sdk/blob/e69969765468264aac1f33333f6d93887c816327/sdk/environments/from_name.go) for other possible values.
+* `ARM_TEST_LOCATION`: The primary location where test resources can be created, use `az account list-locations` CLI command to see list of available locations.
+* `ARM_TEST_LOCATION_ALT`: The secondary location where test resources can be created. Some acceptance tests require the use of multiple locations.
+* `ARM_TEST_LOCATION_ALT2`: The tertiary location where test resources can be created. Some acceptance tests require the use of multiple locations.
 
 **Note:** Acceptance tests create real resources in Azure which often cost money to run.
 

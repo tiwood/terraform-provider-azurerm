@@ -16,7 +16,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
+	"github.com/jackofallops/kermit/sdk/datafactory/2018-06-01/datafactory" // nolint: staticcheck
 )
 
 func resourceDataFactoryLinkedServiceCosmosDbMongoAPI() *pluginsdk.Resource {
@@ -233,10 +233,10 @@ func resourceDataFactoryLinkedServiceCosmosDbMongoAPIRead(d *pluginsdk.ResourceD
 		}
 	}
 
-	databaseName := cosmosdb.CosmosDbMongoDbAPILinkedServiceTypeProperties.Database
+	databaseName := cosmosdb.Database
 	d.Set("database", databaseName)
 
-	versionAbove32 := cosmosdb.CosmosDbMongoDbAPILinkedServiceTypeProperties.IsServerVersionAbove32
+	versionAbove32 := cosmosdb.IsServerVersionAbove32
 	d.Set("server_version_is_32_or_higher", versionAbove32)
 
 	return nil

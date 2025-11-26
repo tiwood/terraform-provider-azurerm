@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonids"
+	"github.com/hashicorp/go-azure-helpers/resourcemanager/commonschema"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/tf"
 	"github.com/hashicorp/terraform-provider-azurerm/helpers/validate"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/clients"
@@ -19,7 +20,7 @@ import (
 	"github.com/hashicorp/terraform-provider-azurerm/internal/tf/validation"
 	"github.com/hashicorp/terraform-provider-azurerm/internal/timeouts"
 	"github.com/hashicorp/terraform-provider-azurerm/utils"
-	"github.com/tombuildsstuff/kermit/sdk/keyvault/7.4/keyvault"
+	"github.com/jackofallops/kermit/sdk/keyvault/7.4/keyvault"
 )
 
 func resourceKeyVaultManagedStorageAccountSasTokenDefinition() *pluginsdk.Resource {
@@ -80,7 +81,7 @@ func resourceKeyVaultManagedStorageAccountSasTokenDefinition() *pluginsdk.Resour
 				ValidateFunc: validate.ISO8601Duration,
 			},
 
-			"tags": tags.ForceNewSchema(),
+			"tags": commonschema.TagsForceNew(),
 		},
 	}
 }
